@@ -28,7 +28,8 @@ public class PlayerController : MonoBehaviour
     Vector2 _moveVec = new Vector2();
     [HideInInspector] public bool doMovementFalloff = true;
     float _momentumTValue = 0.0f;
-    bool _canJump = false;
+    bool _isOnGround = false;
+    bool _doubleJumped = false;
 
     // Start is called before the first frame update
     void Start()
@@ -36,11 +37,12 @@ public class PlayerController : MonoBehaviour
 
         void EnableJump()
         {
-            _canJump = true;
+            _isOnGround = true;
+            _doubleJumped = false;
         }
         void DisableJump()
         {
-            _canJump = false;
+            _isOnGround = false;
         }
         groundCollider.OnStayGround.AddListener(EnableJump);
         groundCollider.OnLeaveGround.AddListener(DisableJump);
@@ -62,8 +64,12 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(CallbackContext ctx)
     {
-        if (!_canJump)
+        if (!ctx.performed)
             return;
+        if (!_isOnGround && _doubleJumped)
+            return;
+        else if (!_isOnGround)
+            _doubleJumped = true;
 
         //accuracy. sliver value changes to be between either -1 or 1
         var direction = (crosshair.position - transform.position).normalized;
